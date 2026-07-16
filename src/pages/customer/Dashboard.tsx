@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Package, CheckCircle, Clock, XCircle } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { returnApi } from '../../api/returnApi'
 import { useAuth } from '../../context/AuthContext'
 import { ReturnCard } from '../../components/returns/ReturnCard'
 import { PageSpinner } from '../../components/common/Spinner'
+import type { ReturnRequest } from '../../types'
 
-function StatCard({ icon: Icon, label, value, color }) {
+interface StatCardProps {
+  icon: LucideIcon
+  label: string
+  value: number
+  color: string
+}
+
+function StatCard({ icon: Icon, label, value, color }: StatCardProps) {
   return (
     <div className="card flex items-center gap-4">
       <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${color}`}>
@@ -22,16 +31,19 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [returns, setReturns] = useState([])
+  const [returns, setReturns] = useState<ReturnRequest[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!user) return
     returnApi
       .getByCustomer(user.userId, { page: 0, size: 20 })
       .then((r) => setReturns(r.data.content ?? []))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [user.userId])
+  }, [user])
+
+  if (!user) return null
 
   const stats = {
     total:     returns.length,

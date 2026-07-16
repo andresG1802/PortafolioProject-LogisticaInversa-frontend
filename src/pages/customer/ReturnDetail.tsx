@@ -1,42 +1,50 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Package, Truck, Warehouse, CheckCircle, XCircle } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { returnApi } from '../../api/returnApi'
-import { useAuth } from '../../context/AuthContext'
 import { ReturnStatusBadge } from '../../components/returns/ReturnStatusBadge'
 import { PageSpinner } from '../../components/common/Spinner'
 import { Modal } from '../../components/common/Modal'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import type { ReturnRequest, ReturnStatus } from '../../types'
 
-const STEPS = [
-  { key: 'PENDING',           label: 'Solicitud',    Icon: Package },
-  { key: 'APPROVED',          label: 'Aprobado',     Icon: CheckCircle },
-  { key: 'LABEL_GENERATED',   label: 'Etiqueta',     Icon: Package },
-  { key: 'SHIPPED',           label: 'Enviado',      Icon: Truck },
-  { key: 'RECEIVED',          label: 'Recibido',     Icon: Warehouse },
-  { key: 'INSPECTED',         label: 'Inspeccionado',Icon: CheckCircle },
-  { key: 'REFUND_PROCESSING', label: 'Reembolso',   Icon: CheckCircle },
-  { key: 'COMPLETED',         label: 'Completado',   Icon: CheckCircle },
+interface Step {
+  key: ReturnStatus
+  label: string
+  Icon: LucideIcon
+}
+
+const STEPS: Step[] = [
+  { key: 'PENDING',           label: 'Solicitud',     Icon: Package },
+  { key: 'APPROVED',          label: 'Aprobado',      Icon: CheckCircle },
+  { key: 'LABEL_GENERATED',   label: 'Etiqueta',      Icon: Package },
+  { key: 'SHIPPED',           label: 'Enviado',       Icon: Truck },
+  { key: 'RECEIVED',          label: 'Recibido',      Icon: Warehouse },
+  { key: 'INSPECTED',         label: 'Inspeccionado', Icon: CheckCircle },
+  { key: 'REFUND_PROCESSING', label: 'Reembolso',     Icon: CheckCircle },
+  { key: 'COMPLETED',         label: 'Completado',    Icon: CheckCircle },
 ]
 
 const ORDER = STEPS.map((s) => s.key)
 
-function fmtDate(d) {
+function fmtDate(d?: string) {
   if (!d) return '—'
   return format(new Date(d), "d MMM yyyy, HH:mm", { locale: es })
 }
 
 export default function ReturnDetail() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const [ret, setRet] = useState(null)
+  const [ret, setRet] = useState<ReturnRequest | null>(null)
   const [loading, setLoading] = useState(true)
   const [cancelModal, setCancelModal] = useState(false)
   const [cancelling, setCancelling] = useState(false)
 
   useEffect(() => {
+    if (!id) return
     returnApi.getById(id)
       .then((r) => setRet(r.data))
       .catch(() => navigate('/returns'))
@@ -44,13 +52,14 @@ export default function ReturnDetail() {
   }, [id])
 
   const handleCancel = async () => {
+    if (!id) return
     setCancelling(true)
     try {
       const r = await returnApi.cancel(id)
       setRet(r.data)
       setCancelModal(false)
     } catch (e) {
-      alert(e.response?.data?.detail ?? 'No se pudo cancelar')
+      alert(getErrorMessage(e, 'No se pudo cancelar'))
     } finally {
       setCancelling(false)
     }

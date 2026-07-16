@@ -1,11 +1,18 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, PackageSearch, Plus, Warehouse,
-  ScanBarcode, ClipboardList, Bell, LogOut, RotateCcw,
+  ScanBarcode, ClipboardList, LogOut, RotateCcw,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-function NavItem({ to, icon: Icon, label }) {
+interface NavItemProps {
+  to: string
+  icon: LucideIcon
+  label: string
+}
+
+function NavItem({ to, icon: Icon, label }: NavItemProps) {
   return (
     <NavLink
       to={to}

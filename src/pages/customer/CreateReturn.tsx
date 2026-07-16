@@ -5,10 +5,12 @@ import { Plus, Trash2, ArrowLeft } from 'lucide-react'
 import { returnApi } from '../../api/returnApi'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/common/Input'
-import { Select } from '../../components/common/Select'
+import { Select, type SelectOption } from '../../components/common/Select'
 import { Spinner } from '../../components/common/Spinner'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import type { ReturnReason, ReturnType } from '../../types'
 
-const REASONS = [
+const REASONS: SelectOption[] = [
   { value: 'DEFECTIVE_PRODUCT',   label: 'Producto defectuoso' },
   { value: 'WRONG_ITEM_RECEIVED', label: 'Producto incorrecto' },
   { value: 'CHANGED_MIND',        label: 'Cambié de opinión' },
@@ -21,11 +23,28 @@ const REASONS = [
   { value: 'OTHER',               label: 'Otro' },
 ]
 
-const RETURN_TYPES = [
+const RETURN_TYPES: SelectOption[] = [
   { value: 'REFUND',       label: 'Reembolso al medio de pago' },
   { value: 'EXCHANGE',     label: 'Cambio de producto' },
   { value: 'STORE_CREDIT', label: 'Crédito en la tienda' },
 ]
+
+interface CreateReturnItemFormValues {
+  productId: string
+  productName: string
+  sku: string
+  quantity: string
+  unitPrice: string
+}
+
+interface CreateReturnFormValues {
+  orderId: string
+  orderNumber: string
+  reason: ReturnReason
+  reasonDescription?: string
+  returnType: ReturnType
+  items: CreateReturnItemFormValues[]
+}
 
 export default function CreateReturn() {
   const { user } = useAuth()
@@ -37,15 +56,16 @@ export default function CreateReturn() {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<CreateReturnFormValues>({
     defaultValues: {
-      items: [{ productId: '', productName: '', sku: '', quantity: 1, unitPrice: '' }],
+      items: [{ productId: '', productName: '', sku: '', quantity: '1', unitPrice: '' }],
     },
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' })
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: CreateReturnFormValues) => {
+    if (!user) return
     setServerError('')
     try {
       const payload = {
@@ -62,7 +82,7 @@ export default function CreateReturn() {
       const res = await returnApi.create(payload)
       navigate(`/returns/${res.data.id}`)
     } catch (err) {
-      setServerError(err.response?.data?.detail ?? 'Error al crear la devolución')
+      setServerError(getErrorMessage(err, 'Error al crear la devolución'))
     }
   }
 
@@ -131,7 +151,7 @@ export default function CreateReturn() {
             </h2>
             <button
               type="button"
-              onClick={() => append({ productId: '', productName: '', sku: '', quantity: 1, unitPrice: '' })}
+              onClick={() => append({ productId: '', productName: '', sku: '', quantity: '1', unitPrice: '' })}
               className="btn-secondary btn-sm"
             >
               <Plus size={14} /> Agregar

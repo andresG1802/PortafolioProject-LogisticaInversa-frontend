@@ -1,9 +1,20 @@
 import { X } from 'lucide-react'
+import type { ReactNode } from 'react'
 
-export function Modal({ open, onClose, title, children, size = 'md' }) {
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl'
+
+interface ModalProps {
+  open: boolean
+  onClose: () => void
+  title?: ReactNode
+  children: ReactNode
+  size?: ModalSize
+}
+
+export function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
   if (!open) return null
 
-  const sizes = {
+  const sizes: Record<ModalSize, string> = {
     sm: 'max-w-md',
     md: 'max-w-lg',
     lg: 'max-w-2xl',

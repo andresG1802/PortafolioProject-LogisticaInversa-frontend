@@ -11,7 +11,15 @@ const variants = {
   indigo: 'bg-indigo-100 text-indigo-700',
 }
 
-export function Badge({ label, variant = 'gray', className = '' }) {
+export type BadgeVariant = keyof typeof variants
+
+interface BadgeProps {
+  label: string
+  variant?: BadgeVariant
+  className?: string
+}
+
+export function Badge({ label, variant = 'gray', className = '' }: BadgeProps) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium

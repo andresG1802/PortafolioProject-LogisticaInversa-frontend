@@ -1,27 +1,39 @@
-import { createContext, useContext, useState, useCallback } from 'react'
-import { authApi } from '../api/authApi'
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { authApi, type LoginPayload, type RegisterPayload } from '../api/authApi'
+import type { User } from '../types'
 
-const AuthContext = createContext(null)
+interface AuthContextValue {
+  user: User | null
+  login: (email: string, password: string) => Promise<User>
+  register: (formData: RegisterPayload) => Promise<User>
+  logout: () => void
+  isAdmin: boolean
+  isWarehouse: boolean
+  isCustomer: boolean
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
     try {
       const stored = localStorage.getItem('user')
-      return stored ? JSON.parse(stored) : null
+      return stored ? (JSON.parse(stored) as User) : null
     } catch {
       return null
     }
   })
 
-  const login = useCallback(async (email, password) => {
-    const { data } = await authApi.login({ email, password })
+  const login = useCallback(async (email: string, password: string) => {
+    const payload: LoginPayload = { email, password }
+    const { data } = await authApi.login(payload)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data))
     setUser(data)
     return data
   }, [])
 
-  const register = useCallback(async (formData) => {
+  const register = useCallback(async (formData: RegisterPayload) => {
     const { data } = await authApi.register(formData)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data))

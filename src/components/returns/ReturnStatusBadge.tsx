@@ -1,7 +1,8 @@
-import { Badge } from '../common/Badge'
+import { Badge, type BadgeVariant } from '../common/Badge'
+import type { ReturnStatus } from '../../types'
 
-const STATUS_MAP = {
-  PENDING:           { label: 'Pendiente',        variant: 'yellow'  },
+const STATUS_MAP: Record<ReturnStatus, { label: string; variant: BadgeVariant }> = {
+  PENDING:           { label: 'Pendiente',         variant: 'yellow'  },
   APPROVED:          { label: 'Aprobado',          variant: 'blue'    },
   LABEL_GENERATED:   { label: 'Etiqueta lista',    variant: 'indigo'  },
   SHIPPED:           { label: 'Enviado',           variant: 'purple'  },
@@ -13,7 +14,7 @@ const STATUS_MAP = {
   CANCELLED:         { label: 'Cancelado',         variant: 'gray'    },
 }
 
-export function ReturnStatusBadge({ status }) {
-  const cfg = STATUS_MAP[status] ?? { label: status, variant: 'gray' }
+export function ReturnStatusBadge({ status }: { status?: ReturnStatus }) {
+  const cfg = (status && STATUS_MAP[status]) || { label: status ?? '', variant: 'gray' as BadgeVariant }
   return <Badge label={cfg.label} variant={cfg.variant} />
 }

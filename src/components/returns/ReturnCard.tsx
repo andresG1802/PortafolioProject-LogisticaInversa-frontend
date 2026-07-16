@@ -3,8 +3,9 @@ import { Package, ChevronRight, Calendar } from 'lucide-react'
 import { ReturnStatusBadge } from './ReturnStatusBadge'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import type { ReturnReason, ReturnRequest } from '../../types'
 
-const REASON_LABELS = {
+const REASON_LABELS: Record<ReturnReason, string> = {
   DEFECTIVE_PRODUCT:    'Producto defectuoso',
   WRONG_ITEM_RECEIVED:  'Producto incorrecto',
   CHANGED_MIND:         'Cambié de opinión',
@@ -17,7 +18,7 @@ const REASON_LABELS = {
   OTHER:                'Otro',
 }
 
-export function ReturnCard({ ret }) {
+export function ReturnCard({ ret }: { ret: ReturnRequest }) {
   const navigate = useNavigate()
 
   return (

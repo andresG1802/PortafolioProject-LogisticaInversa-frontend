@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { ScanBarcode, ClipboardCheck, Clock, ChevronRight } from 'lucide-react'
 import { warehouseApi } from '../../api/warehouseApi'
 import { PageSpinner } from '../../components/common/Spinner'
-import { Badge } from '../../components/common/Badge'
+import { Badge, type BadgeVariant } from '../../components/common/Badge'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import type { WarehouseItem, WarehouseItemStatus } from '../../types'
 
-const STATUS_CFG = {
+const STATUS_CFG: Record<WarehouseItemStatus, { label: string; variant: BadgeVariant }> = {
   RECEIVED:        { label: 'Recibido',         variant: 'blue'   },
   INSPECTING:      { label: 'Inspeccionando',   variant: 'yellow' },
   INSPECTION_DONE: { label: 'Inspección lista', variant: 'green'  },
@@ -15,7 +16,7 @@ const STATUS_CFG = {
 
 export default function WarehouseDashboard() {
   const navigate = useNavigate()
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState<WarehouseItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
@@ -74,7 +75,7 @@ export default function WarehouseDashboard() {
         ) : (
           <div className="divide-y divide-gray-50">
             {items.map((item) => {
-              const cfg = STATUS_CFG[item.status] ?? { label: item.status, variant: 'gray' }
+              const cfg = STATUS_CFG[item.status] ?? { label: item.status, variant: 'gray' as BadgeVariant }
               return (
                 <div
                   key={item.id}

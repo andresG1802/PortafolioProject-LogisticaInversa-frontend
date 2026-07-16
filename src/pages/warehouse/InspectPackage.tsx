@@ -3,12 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { ArrowLeft, ClipboardCheck } from 'lucide-react'
 import { warehouseApi } from '../../api/warehouseApi'
-import { Select } from '../../components/common/Select'
+import { Select, type SelectOption } from '../../components/common/Select'
 import { Input } from '../../components/common/Input'
 import { PageSpinner, Spinner } from '../../components/common/Spinner'
 import { Badge } from '../../components/common/Badge'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import type { InspectionResult, WarehouseItem } from '../../types'
 
-const RESULTS = [
+const RESULTS: SelectOption[] = [
   { value: 'APPROVED_FULL_REFUND',      label: 'Aprobado — Reembolso total' },
   { value: 'APPROVED_PARTIAL_REFUND',   label: 'Aprobado — Reembolso parcial' },
   { value: 'APPROVED_EXCHANGE',         label: 'Aprobado — Cambio de producto' },
@@ -16,24 +18,34 @@ const RESULTS = [
   { value: 'REJECTED_POLICY_VIOLATION', label: 'Rechazado — Viola políticas' },
 ]
 
+interface InspectFormValues {
+  inspectionResult: InspectionResult
+  inspectionNotes: string
+  inspectedBy?: string
+  approvedRefundAmount?: string
+  restockable?: 'true' | 'false'
+}
+
 export default function InspectPackage() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [item, setItem] = useState(null)
+  const [item, setItem] = useState<WarehouseItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [serverError, setServerError] = useState('')
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm()
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<InspectFormValues>()
   const result = watch('inspectionResult')
 
   useEffect(() => {
+    if (!id) return
     warehouseApi.getById(id)
       .then((r) => setItem(r.data))
       .catch(() => navigate('/warehouse'))
       .finally(() => setLoading(false))
   }, [id])
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: InspectFormValues) => {
+    if (!id) return
     setServerError('')
     try {
       await warehouseApi.inspect(id, {
@@ -45,7 +57,7 @@ export default function InspectPackage() {
       })
       navigate('/warehouse')
     } catch (err) {
-      setServerError(err.response?.data?.detail ?? 'Error al registrar la inspección')
+      setServerError(getErrorMessage(err, 'Error al registrar la inspección'))
     }
   }
 

@@ -5,6 +5,12 @@ import { RotateCcw, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/common/Input'
 import { Spinner } from '../../components/common/Spinner'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+
+interface LoginFormValues {
+  email: string
+  password: string
+}
 
 export default function Login() {
   const { login } = useAuth()
@@ -12,9 +18,9 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm()
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>()
 
-  const onSubmit = async ({ email, password }) => {
+  const onSubmit = async ({ email, password }: LoginFormValues) => {
     setError('')
     try {
       const user = await login(email, password)
@@ -22,7 +28,7 @@ export default function Login() {
       else if (user.role === 'ADMIN') navigate('/admin')
       else navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.detail ?? 'Credenciales inválidas')
+      setError(getErrorMessage(err, 'Credenciales inválidas'))
     }
   }
 

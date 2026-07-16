@@ -1,7 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import type { Role } from '../types'
 
-export function PrivateRoute({ allowedRoles }) {
+export function PrivateRoute({ allowedRoles }: { allowedRoles?: Role[] }) {
   const { user } = useAuth()
 
   if (!user) return <Navigate to="/login" replace />

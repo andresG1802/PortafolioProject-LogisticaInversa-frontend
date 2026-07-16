@@ -5,8 +5,9 @@ import { returnApi } from '../../api/returnApi'
 import { useAuth } from '../../context/AuthContext'
 import { ReturnCard } from '../../components/returns/ReturnCard'
 import { PageSpinner } from '../../components/common/Spinner'
+import type { ReturnRequest, ReturnStatus } from '../../types'
 
-const STATUSES = [
+const STATUSES: { value: ReturnStatus | ''; label: string }[] = [
   { value: '', label: 'Todos' },
   { value: 'PENDING', label: 'Pendiente' },
   { value: 'APPROVED', label: 'Aprobado' },
@@ -18,13 +19,14 @@ const STATUSES = [
 
 export default function ReturnsList() {
   const { user } = useAuth()
-  const [returns, setReturns] = useState([])
+  const [returns, setReturns] = useState<ReturnRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState<ReturnStatus | ''>('')
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
+    if (!user) return
     setLoading(true)
     returnApi
       .getByCustomer(user.userId, { page, size: 10, ...(status && { status }) })
@@ -34,7 +36,7 @@ export default function ReturnsList() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [user.userId, status, page])
+  }, [user, status, page])
 
   return (
     <div className="space-y-5">

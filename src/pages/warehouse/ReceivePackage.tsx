@@ -2,25 +2,27 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { ArrowLeft, ScanBarcode } from 'lucide-react'
-import { warehouseApi } from '../../api/warehouseApi'
+import { warehouseApi, type ReceiveReturnPayload } from '../../api/warehouseApi'
 import { Input } from '../../components/common/Input'
 import { Spinner } from '../../components/common/Spinner'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import type { WarehouseItem } from '../../types'
 
 export default function ReceivePackage() {
   const navigate = useNavigate()
   const [serverError, setServerError] = useState('')
-  const [success, setSuccess] = useState(null)
+  const [success, setSuccess] = useState<WarehouseItem | null>(null)
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm()
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ReceiveReturnPayload>()
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: ReceiveReturnPayload) => {
     setServerError('')
     try {
       const res = await warehouseApi.receiveReturn(data)
       setSuccess(res.data)
       reset()
     } catch (err) {
-      setServerError(err.response?.data?.detail ?? 'Error al registrar la recepción')
+      setServerError(getErrorMessage(err, 'Error al registrar la recepción'))
     }
   }
 

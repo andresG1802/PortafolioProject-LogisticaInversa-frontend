@@ -4,10 +4,12 @@ import { useForm } from 'react-hook-form'
 import { RotateCcw } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/common/Input'
-import { Select } from '../../components/common/Select'
+import { Select, type SelectOption } from '../../components/common/Select'
 import { Spinner } from '../../components/common/Spinner'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import type { RegisterPayload } from '../../api/authApi'
 
-const ROLE_OPTIONS = [
+const ROLE_OPTIONS: SelectOption[] = [
   { value: 'CUSTOMER', label: 'Cliente' },
   { value: 'WAREHOUSE_STAFF', label: 'Personal de almacén' },
 ]
@@ -17,17 +19,17 @@ export default function Register() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterPayload>({
     defaultValues: { role: 'CUSTOMER' },
   })
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: RegisterPayload) => {
     setError('')
     try {
       await registerUser(data)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.detail ?? 'Error al registrar la cuenta')
+      setError(getErrorMessage(err, 'Error al registrar la cuenta'))
     }
   }
 

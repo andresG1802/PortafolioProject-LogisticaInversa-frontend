@@ -8,8 +8,10 @@ import { Modal } from '../../components/common/Modal'
 import { Select } from '../../components/common/Select'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import type { ReturnRequest, ReturnStatus } from '../../types'
 
-const NEXT_STATUSES = {
+const NEXT_STATUSES: Partial<Record<ReturnStatus, ReturnStatus[]>> = {
   PENDING:           ['APPROVED', 'REJECTED'],
   APPROVED:          ['LABEL_GENERATED', 'CANCELLED'],
   LABEL_GENERATED:   ['SHIPPED'],
@@ -21,12 +23,12 @@ const NEXT_STATUSES = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const [returns, setReturns] = useState([])
+  const [returns, setReturns] = useState<ReturnRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
-  const [statusModal, setStatusModal] = useState(null)
-  const [newStatus, setNewStatus] = useState('')
+  const [statusModal, setStatusModal] = useState<ReturnRequest | null>(null)
+  const [newStatus, setNewStatus] = useState<ReturnStatus | ''>('')
   const [adminNotes, setAdminNotes] = useState('')
   const [updating, setUpdating] = useState(false)
 
@@ -43,21 +45,21 @@ export default function AdminDashboard() {
 
   useEffect(fetchReturns, [page])
 
-  const openModal = (ret) => {
+  const openModal = (ret: ReturnRequest) => {
     setStatusModal(ret)
     setNewStatus('')
     setAdminNotes('')
   }
 
   const handleStatusUpdate = async () => {
-    if (!newStatus) return
+    if (!newStatus || !statusModal) return
     setUpdating(true)
     try {
       await returnApi.updateStatus(statusModal.id, { status: newStatus, adminNotes })
       setStatusModal(null)
       fetchReturns()
     } catch (err) {
-      alert(err.response?.data?.detail ?? 'Error al actualizar')
+      alert(getErrorMessage(err, 'Error al actualizar'))
     } finally {
       setUpdating(false)
     }
@@ -133,7 +135,7 @@ export default function AdminDashboard() {
             options={nextOpts}
             placeholder="Seleccioná el nuevo estado..."
             value={newStatus}
-            onChange={(e) => setNewStatus(e.target.value)}
+            onChange={(e) => setNewStatus(e.target.value as ReturnStatus)}
           />
           <div>
             <label className="form-label">Nota interna (opcional)</label>
